@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Добавление пользователя</title>
+</head>
+<body>
+<h2>Форма добавления пользователя</h2>
+<form action="/admin/add" method="post" th:action="@{/admin/add}" th:object="${user}" th:method="post">
+    <label for="name">Имя:</label>
+    <input type="text" id="name" name="name" required th:field="*{name}">
+    <p style="color:red" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Ошибка имени</p>
+
+    <label for="password">Пароль:</label>
+    <input type="text" id="password" name="password" required th:field="*{password}">
+    <p></p>
+    <label for="surname">Фамилия:</label>
+    <input type="text" id="surname" name="surname" required th:field="*{surname}">
+    <p style="color:red" th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}">Ошибка фамилии</p>
+
+    <label for="age">Возраст:</label>
+    <input type="number" id="age" name="age" required th:field="*{age}">
+    <p style="color:red" th:if="${#fields.hasErrors('age')}" th:errors="*{age}">Ошибка возраста</p>
+
+    <input type="submit" value="Добавить пользователя">
+</form>
+</body>
+</html>

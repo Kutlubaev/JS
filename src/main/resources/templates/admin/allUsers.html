@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Список пользователей</title>
+</head>
+<body>
+<h1>Пульт управления Администратора</h1>
+<table>
+    <thead>
+    <tr>
+        <th>Имя</th>
+        <th>Фамилия</th>
+        <th>Возраст</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="user : ${usersList}">
+        <td th:text="${user.id}">id</td>
+        <td th:text="${user.name}">Имя</td>
+        <td th:text="${user.surname}">Фамилия</td>
+        <td th:text="${user.age}">Возраст</td>
+
+        <td>
+            <!-- Ссылка на редактирование пользователя -->
+            <a th:href="@{/admin/edit(id=${user.id})}">Редактировать</a>
+            <!-- Ссылка на удаление пользователя -->
+            <a th:href="@{/admin/delete(id=${user.id})}">Удалить</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<a th:href="@{/admin/add}">Добавить нового пользователя</a>
+<a href="/logout">Logout</a>
+</body>
+</html>
