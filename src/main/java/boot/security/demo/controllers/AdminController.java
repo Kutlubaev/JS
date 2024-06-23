@@ -60,7 +60,7 @@ public class AdminController {
                     .collect(Collectors.toSet());
             user.setRoles(roles);
         } else {
-            user.setRoles(new HashSet<>()); // Если роли не выбраны, устанавливаем пустой набор
+            user.setRoles(new HashSet<>());
         }
         userService.edit(user);
         modelAndView.setViewName("redirect:/admin/");
@@ -71,7 +71,7 @@ public class AdminController {
     public ModelAndView addPage() {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject("user", new User());
-        modelAndView.addObject("allRoles", roleService.getAll()); // Добавьте список всех ролей
+        modelAndView.addObject("allRoles", roleService.getAll());
         modelAndView.setViewName("admin/addPage");
         return modelAndView;
     }
