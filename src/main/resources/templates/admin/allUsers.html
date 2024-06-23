@@ -20,6 +20,8 @@
         <td th:text="${user.name}">Имя</td>
         <td th:text="${user.surname}">Фамилия</td>
         <td th:text="${user.age}">Возраст</td>
+        <td th:each="role, iterStat : ${user.roles}"
+            th:text="${role.roleName} + (iterStat.last ? '' : ', ')">Роль</td>
 
         <td>
             <!-- Ссылка на редактирование пользователя -->

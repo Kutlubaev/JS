@@ -9,6 +9,10 @@
 <p>Name: <span th:text="${user.name}"></span></p>
 <p>Surname: <span th:text="${user.surname}"></span></p>
 <p>Age: <span th:text="${user.age}"></span></p>
+<p>Роли:</p>
+<ul>
+  <li th:each="role : ${roles}" th:text="${role.roleName}"></li>
+</ul>
 <a href="/logout">Logout</a>
 </body>
 </html>

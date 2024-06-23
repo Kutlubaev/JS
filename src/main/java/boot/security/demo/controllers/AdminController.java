@@ -1,6 +1,8 @@
 package boot.security.demo.controllers;
 
+import boot.security.demo.model.Role;
 import boot.security.demo.model.User;
+import boot.security.demo.service.RoleService;
 import boot.security.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -8,9 +10,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/")
@@ -18,6 +21,9 @@ public class AdminController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RoleService roleService;
 
     @GetMapping("/")
     public ModelAndView getAllUsers() {
@@ -27,24 +33,37 @@ public class AdminController {
         return modelAndView;
     }
 
+
     @RequestMapping(value = "/edit", method = RequestMethod.GET)
     public ModelAndView editPage(@RequestParam("id") int id) {
-        System.out.println("Вызван метод на загрузку редактирования");
-        Optional<User> user = userService.getById(id);
+        User user = userService.getById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User with id " + id + " not found"));
         ModelAndView modelAndView = new ModelAndView("admin/editPage");
         modelAndView.addObject("user", user);
+        modelAndView.addObject("allRoles", roleService.getAll());
         return modelAndView;
     }
 
     @RequestMapping(value = "/edit", method = RequestMethod.POST)
-    public ModelAndView editUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult) {
+    public ModelAndView editUser(@ModelAttribute("user") User user, BindingResult bindingResult,
+                                 @RequestParam(required = false) List<Integer> selectedRoles) {
         ModelAndView modelAndView = new ModelAndView();
         if (bindingResult.hasErrors()) {
+            modelAndView.addObject("allRoles", roleService.getAll());
             modelAndView.setViewName("admin/editPage");
             return modelAndView;
         }
-        modelAndView.setViewName("redirect:/admin/");
+        if (selectedRoles != null) {
+            Set<Role> roles = selectedRoles.stream()
+                    .map(roleService::getById)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            user.setRoles(roles);
+        } else {
+            user.setRoles(new HashSet<>()); // Если роли не выбраны, устанавливаем пустой набор
+        }
         userService.edit(user);
+        modelAndView.setViewName("redirect:/admin/");
         return modelAndView;
     }
 
@@ -52,19 +71,27 @@ public class AdminController {
     public ModelAndView addPage() {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject("user", new User());
+        modelAndView.addObject("allRoles", roleService.getAll()); // Добавьте список всех ролей
         modelAndView.setViewName("admin/addPage");
         return modelAndView;
     }
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
-    public ModelAndView addUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult) {
+    public ModelAndView addUser(@ModelAttribute("user") User user, BindingResult bindingResult, @RequestParam(required = false) List<Integer> selectedRoles) {
         ModelAndView modelAndView = new ModelAndView();
         if (bindingResult.hasErrors()) {
+            modelAndView.addObject("allRoles", roleService.getAll());
             modelAndView.setViewName("admin/addPage");
             return modelAndView;
         }
-        modelAndView.setViewName("redirect:/admin/");
+        if (selectedRoles != null) {
+            Set<Role> roles = selectedRoles.stream()
+                    .map(roleService::getById)
+                    .collect(Collectors.toSet());
+            user.setRoles(roles);
+        }
         userService.add(user);
+        modelAndView.setViewName("redirect:/admin/");
         return modelAndView;
     }
 

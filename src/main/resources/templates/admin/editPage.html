@@ -28,6 +28,13 @@
         <input type="password" id="password" th:field="*{password}" required/>
     </div>
     <div>
+        <label for="roles">Роли:</label>
+        <select multiple id="roles" name="selectedRoles">
+            <option th:each="role : ${allRoles}" th:value="${role.id}"
+                    th:selected="${user.roles.contains(role)}" th:text="${role.roleName}"></option>
+        </select>
+    </div>
+    <div>
         <button type="submit">Сохранить изменения</button>
     </div>
 </form>
