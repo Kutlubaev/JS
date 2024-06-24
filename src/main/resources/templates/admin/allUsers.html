@@ -3,36 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <title>Список пользователей</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .edit-button, .delete-button, .add-button{
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .edit-button {
+            background-color: #20a0c3;
+            color: white;
+        }
+        .delete-button {
+            background-color: #dc3545;
+            color: white;
+        }
+        .add-button {
+            background-color: #28a745;
+            color: white;
+        }
+        .edit-button:hover, .delete-button:hover, .add-button:hover {
+            color: #ffffff; /*  цвет текста при наведении */
+        }
+        .logout-button {
+            position: fixed;
+            right: 50px;
+            top: 0px;
+            background-color: transparent; /*  цвет фона */
+            color: #989393; /* Цвет текста */
+            padding: 10px 20px; /* Внутренние отступы */
+            border: none; /* Убрать границу */
+            border-radius: 5px; /* Скругленные углы */
+            font-size: 16px; /* Размер шрифта */
+            cursor: pointer; /* Курсор в виде указателя */
+        }
+
+        .logout-button:hover {
+            background-color: #d80c26; /* цвет при наведении */
+            color: white; /* цвет текста при наведении */
+        }
+        /* Стили для полосы */
+        .user-bar {
+            background-color: rgba(18, 16, 16, 0.8); /*  фон */
+            color: white;
+            padding: 10px 0;
+        }
+        .tab {
+            display: inline-block;
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #f8f9fa; /* Цвет фона вкладок */
+            color: darkgrey; /* Цвет текста неактивной вкладки */
+            border-radius: 0px;
+            margin-right: 5px; /* Отступ между вкладками */
+        }
+        .tab.active {
+            background-color: white; /*  цвет фона активной вкладки */
+            color: #343a40; /*  цвет текста активной вкладки */
+            border: 2px solid #e6e6e6;/* цвет контура */
+            border-bottom: none;
+        }
+        .tab:hover {
+            background-color: white;
+            color: #343a40;
+        }
+        .light-blue {
+            color: #add8e6; /* Светло-голубой цвет текста */
+        }
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,.05); /* Чередование цветов строк */
+        }
+    </style>
 </head>
 <body>
-<h1>Пульт управления Администратора</h1>
-<table>
-    <thead>
-    <tr>
-        <th>Имя</th>
-        <th>Фамилия</th>
-        <th>Возраст</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="user : ${usersList}">
-        <td th:text="${user.id}">id</td>
-        <td th:text="${user.name}">Имя</td>
-        <td th:text="${user.surname}">Фамилия</td>
-        <td th:text="${user.age}">Возраст</td>
-        <td th:each="role, iterStat : ${user.roles}"
-            th:text="${role.roleName} + (iterStat.last ? '' : ', ')">Роль</td>
-
-        <td>
-            <!-- Ссылка на редактирование пользователя -->
-            <a th:href="@{/admin/edit(id=${user.id})}">Редактировать</a>
-            <!-- Ссылка на удаление пользователя -->
-            <a th:href="@{/admin/delete(id=${user.id})}">Удалить</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
-<a th:href="@{/admin/add}">Добавить нового пользователя</a>
-<a href="/logout">Logout</a>
+<!-- Полоса в верхней части страницы -->
+<div class="user-bar">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <span th:text="${user.name}"></span> -
+                <span th:each="role : ${user.roles}" th:text="${role.roleName} + (iterStat.last ? '' : ', ')"></span>
+            </div>
+            <div class="col text-right">
+                <a href="/logout" class="btn btn-primary logout-button">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container mt-5">
+    <h1>Панель администратора</h1>
+</div>
+<div class="container mt-3">
+    <a href="/admin/" class="tab active">Таблица пользователей</a>
+    <a href="/admin/add" class="tab light-blue">Добавить нового пользователя</a>
+</div>
+<div class="container mt-3">
+    <h2>Все пользователи</h2>
+    <table class="table table-responsive table-striped">
+        <!-- Заголовки и строки таблицы -->
+        <thead class="thead-light">
+        <tr>
+            <th>ID</th>
+            <th>Имя</th>
+            <th>Фамилия</th>
+            <th>Возраст</th>
+            <th>Роли</th>
+            <th>Редактировать</th>
+            <th>Удалить</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${usersList}">
+            <td th:text="${user.id}">id</td>
+            <td th:text="${user.name}">Имя</td>
+            <td th:text="${user.surname}">Фамилия</td>
+            <td th:text="${user.age}">Возраст</td>
+            <td th:each="role, iterStat : ${user.roles}"
+                th:text="${role.roleName} + (iterStat.last ? '' : ', ')">Роль</td>
+            <td>
+                <!-- Ссылка на редактирование пользователя -->
+                <a th:href="@{/admin/edit(id=${user.id})}" class="edit-button">Редактировать</a>
+            </td>
+            <td>
+                <!-- Ссылка на удаление пользователя -->
+                <a th:href="@{/admin/delete(id=${user.id})}" class="delete-button">Удалить</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
 </html>

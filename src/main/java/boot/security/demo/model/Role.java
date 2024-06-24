@@ -14,13 +14,6 @@ public class Role implements GrantedAuthority {
     @Column(unique = true, name = "role_name")
     private String roleName;
 
-    @Override
-    public String toString() {
-        return "Role{" +
-                "id=" + id +
-                ", roleName='" + roleName + '\'' +
-                '}';
-    }
 
     public String getRoleName() {
         return roleName;
@@ -41,5 +34,13 @@ public class Role implements GrantedAuthority {
     @Override
     public String getAuthority() {
         return roleName;
+    }
+
+    @Override
+    public String toString() {
+        return "Role{" +
+                "id=" + id +
+                ", roleName='" + roleName + '\'' +
+                '}';
     }
 }

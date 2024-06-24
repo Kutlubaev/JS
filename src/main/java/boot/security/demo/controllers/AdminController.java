@@ -4,8 +4,11 @@ import boot.security.demo.model.Role;
 import boot.security.demo.model.User;
 import boot.security.demo.service.RoleService;
 import boot.security.demo.service.UserService;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -25,10 +28,14 @@ public class AdminController {
     @Autowired
     private RoleService roleService;
 
+
     @GetMapping("/")
-    public ModelAndView getAllUsers() {
-        List<User> users = userService.getAll();
+    public ModelAndView getAllUsers(@AuthenticationPrincipal User authUser) {
+        Collection<Role> roles = authUser.getRoles();
+        List<User> users = userService.getAllWithRoles();
         ModelAndView modelAndView = new ModelAndView("admin/allUsers");
+        modelAndView.addObject("user", authUser);
+        modelAndView.addObject("roles", roles);
         modelAndView.addObject("usersList", users);
         return modelAndView;
     }
