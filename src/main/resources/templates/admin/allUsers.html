@@ -76,9 +76,45 @@
         .table-striped tbody tr:nth-of-type(odd) {
             background-color: rgba(0,0,0,.05); /* Чередование цветов строк */
         }
+        .sidebar {
+            position: fixed; /* Фиксированное положение */
+            left: 0; /* Прижать к левому краю */
+            top: 50px; /* Прижать к верху */
+            width: 250px; /* Ширина колонки */
+            background: #fff; /* Белый фон */
+            height: 100vh; /* Высота на весь экран */
+            padding: 10px; /* Внутренние отступы */
+            box-sizing: border-box; /* Размеры включают padding */
+        }
+
+        /* Обновленные стили для кнопок */
+        .nav-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 5px;
+            background: transparent; /* Прозрачный фон */
+            text-align: left;
+            border: none; /* Убрать границу */
+            outline: none; /* Убрать контур */
+            cursor: pointer; /* Курсор в виде указателя */
+            transition: background-color 0.3s; /* Плавное изменение фона */
+        }
+        .nav-button:hover {
+            background-color: #e0e0e0; /* Цвет фона при наведении */
+        }
+        .nav-button.active {
+            background-color: #007bff; /* Синий цвет активной кнопки */
+            color: white; /* Белый текст */
+        }
     </style>
 </head>
 <body>
+<!-- Левая боковая колонка -->
+<div class="sidebar">
+    <button class="nav-button active" onclick="location.href='/admin/'">Панель администратора</button>
+    <button class="nav-button" onclick="location.href='/user'">Информация о пользователе</button>
+</div>
 <!-- Полоса в верхней части страницы -->
 <div class="user-bar">
     <div class="container">
@@ -111,8 +147,7 @@
             <th>Фамилия</th>
             <th>Возраст</th>
             <th>Роли</th>
-            <th>Редактировать</th>
-            <th>Удалить</th>
+            <th>Действия</th>
         </tr>
         </thead>
         <tbody>
@@ -121,20 +156,22 @@
             <td th:text="${user.name}">Имя</td>
             <td th:text="${user.surname}">Фамилия</td>
             <td th:text="${user.age}">Возраст</td>
-            <td th:each="role, iterStat : ${user.roles}"
-                th:text="${role.roleName} + (iterStat.last ? '' : ', ')">Роль</td>
             <td>
-                <!-- Ссылка на редактирование пользователя -->
-                <a th:href="@{/admin/edit(id=${user.id})}" class="edit-button">Редактировать</a>
+                <ul>
+                    <li th:each="role : ${user.roles}" th:text="${role.roleName}">Роль</li>
+                </ul>
             </td>
             <td>
-                <!-- Ссылка на удаление пользователя -->
+                <a th:href="@{/admin/edit(id=${user.id})}" class="edit-button">Редактировать</a>
                 <a th:href="@{/admin/delete(id=${user.id})}" class="delete-button">Удалить</a>
             </td>
         </tr>
         </tbody>
     </table>
 </div>
+<!-- Ваш JavaScript код для обработки формы -->
+
+<!-- Подключение JavaScript библиотеки Bootstrap для работы модального окна -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>

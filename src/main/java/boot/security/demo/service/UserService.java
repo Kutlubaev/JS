@@ -2,9 +2,7 @@ package boot.security.demo.service;
 
 import boot.security.demo.model.User;
 import boot.security.demo.repositories.UserRepository;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +18,17 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Transactional(readOnly = true)
+    public boolean isUsernameUniqueForEdit(String username, int userId) {
+        Optional<User> existingUser = userRepository.findByName(username);
+        return existingUser.isEmpty() || existingUser.get().getId() == (userId);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isUsernameUnique(String username) {
+        return userRepository.findByName(username).isEmpty();
+    }
 
     @Transactional(readOnly = true)
     public List<User> getAllWithRoles() {

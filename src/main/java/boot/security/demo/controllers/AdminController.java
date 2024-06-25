@@ -6,6 +6,8 @@ import boot.security.demo.service.RoleService;
 import boot.security.demo.service.UserService;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -52,10 +54,18 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/edit", method = RequestMethod.POST)
-    public ModelAndView editUser(@ModelAttribute("user") User user, BindingResult bindingResult,
+    public ModelAndView editUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult,
                                  @RequestParam(required = false) List<Integer> selectedRoles) {
+
         ModelAndView modelAndView = new ModelAndView();
         if (bindingResult.hasErrors()) {
+            modelAndView.addObject("allRoles", roleService.getAll());
+            modelAndView.setViewName("admin/editPage");
+            return modelAndView;
+        }
+
+        if ( !userService.isUsernameUniqueForEdit(user.getName(), user.getId())) {
+            bindingResult.rejectValue("name", "error.user", "Имя пользователя уже существует.");
             modelAndView.addObject("allRoles", roleService.getAll());
             modelAndView.setViewName("admin/editPage");
             return modelAndView;
@@ -63,7 +73,6 @@ public class AdminController {
         if (selectedRoles != null) {
             Set<Role> roles = selectedRoles.stream()
                     .map(roleService::getById)
-                    .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
             user.setRoles(roles);
         } else {
@@ -84,9 +93,19 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
-    public ModelAndView addUser(@ModelAttribute("user") User user, BindingResult bindingResult, @RequestParam(required = false) List<Integer> selectedRoles) {
+    public ModelAndView addUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult,
+                                @RequestParam(required = false) List<Integer> selectedRoles) {
+
         ModelAndView modelAndView = new ModelAndView();
+
         if (bindingResult.hasErrors()) {
+            modelAndView.addObject("allRoles", roleService.getAll());
+            modelAndView.setViewName("admin/editPage");
+            return modelAndView;
+        }
+
+        if (!userService.isUsernameUnique(user.getUsername())) {
+            bindingResult.rejectValue("name", "error.user", "Имя пользователя уже существует.");
             modelAndView.addObject("allRoles", roleService.getAll());
             modelAndView.setViewName("admin/addPage");
             return modelAndView;
@@ -111,8 +130,4 @@ public class AdminController {
         return modelAndView;
     }
 
-    @GetMapping("/page")
-    public String adminPage() {
-        return "admin/adminPage";
-    }
 }

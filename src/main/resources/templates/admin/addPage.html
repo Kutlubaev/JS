@@ -1,88 +1,168 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Добавление пользователя</title>
-    <!-- Bootstrap CSS -->
+    <title>User Info</title>
+    <!-- Добавляем ссылку на Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <!-- Пользовательские стили -->
     <style>
-        body {
-            padding-top: 20px;
+        .user-bar {
+            background-color: rgba(18, 16, 16, 0.8); /* Темный полупрозрачный фон */
+            color: white;
+            padding: 10px 0;
         }
-        .container {
-            width: 50%;
-            margin: auto;
+        .logout-button {
+            position: fixed;
+            right: 50px;
+            top: 0px;
         }
-        h2 {
-            margin-bottom: 20px;
+        .logout-button {
+            background-color: transparent; /* Зеленый цвет фона */
+            color: #989393; /* Белый цвет текста */
+            padding: 10px 20px; /* Внутренние отступы */
+            border: none; /* Убрать границу */
+            border-radius: 5px; /* Скругленные углы */
+            font-size: 16px; /* Размер шрифта */
+            cursor: pointer; /* Курсор в виде указателя */
         }
-        form {
-            background-color: #f7f7f7;
-            padding: 20px;
-            border-radius: 8px;
+
+        .logout-button:hover {
+            background-color: #d80c26; /* Темно-зеленый цвет при наведении */
         }
-        label {
-            font-weight: bold;
+        /* Стили для формы */
+        .form-container {
+            background-color: #f2f2f2; /* Светлый фон для контейнера формы */
+            padding: 20px; /* Внутренние отступы */
+            border-radius: 8px; /* Скругленные углы */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень контейнера */
+            margin-top: 20px; /* Отступ сверху */
         }
+
+        /* Стили для полей ввода */
         input[type="text"],
         input[type="password"],
         input[type="number"],
         select {
+            width: 100%; /* Ширина на всю доступную ширину */
+            padding: 10px; /* Внутренние отступы */
+            margin: 8px 0; /* Вертикальные отступы */
+            display: inline-block; /* Элементы рядом друг с другом */
+            border: 1px solid #ccc; /* Граница */
+            border-radius: 4px; /* Скругленные углы */
+            box-sizing: border-box; /* Размеры включают внутренние отступы и границы */
+        }
+
+        /* Стили для кнопки отправки */
+        input[type="submit"] {
+            width: 100%; /* Ширина на всю доступную ширину */
+            background-color: #4CAF50; /* Зеленый цвет фона */
+            color: white; /* Белый цвет текста */
+            padding: 14px 20px; /* Внутренние отступы */
+            margin: 8px 0; /* Вертикальные отступы */
+            border: none; /* Убрать границу */
+            border-radius: 4px; /* Скругленные углы */
+            cursor: pointer; /* Курсор в виде указателя */
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049; /* Темно-зеленый цвет при наведении */
+        }
+
+        /* Стили для сообщений об ошибках */
+        .error {
+            color: #d80c26; /* Красный цвет текста */
+            font-size: 14px; /* Размер шрифта */
+        }
+        .sidebar {
+            position: fixed; /* Фиксированное положение */
+            left: 0; /* Прижать к левому краю */
+            top: 50px; /* Прижать к верху */
+            width: 250px; /* Ширина колонки */
+            background: #fff; /* Белый фон */
+            height: 100vh; /* Высота на весь экран */
+            padding: 10px; /* Внутренние отступы */
+            box-sizing: border-box; /* Размеры включают padding */
+        }
+
+        /* Обновленные стили для кнопок */
+        .nav-button {
+            display: block;
             width: 100%;
             padding: 10px;
-            margin: 8px 0;
-            display: inline-block;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
+            margin-bottom: 5px;
+            background: transparent; /* Прозрачный фон */
+            text-align: left;
+            border: none; /* Убрать границу */
+            outline: none; /* Убрать контур */
+            cursor: pointer; /* Курсор в виде указателя */
+            transition: background-color 0.3s; /* Плавное изменение фона */
         }
-        input[type="submit"] {
-            width: 100%;
-            background-color: #4CAF50;
-            color: white;
-            padding: 14px 20px;
-            margin: 8px 0;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        .nav-button:hover {
+            background-color: #e0e0e0; /* Цвет фона при наведении */
         }
-        input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-        .error {
-            color: red;
-            font-size: 0.8em;
+        .nav-button.active {
+            background-color: #007bff; /* Синий цвет активной кнопки */
+            color: white; /* Белый текст */
         }
     </style>
 </head>
 <body>
+<!-- Левая боковая колонка -->
+<div class="sidebar">
+    <button class="nav-button active" onclick="location.href='/admin/'">Панель администратора</button>
+    <button class="nav-button" onclick="location.href='/user'">Информация о пользователе</button>
+</div>
+<div class="user-bar">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <span th:text="${user.name}"></span> -
+                <span th:each="role : ${user.roles}" th:text="${role.roleName} + (iterStat.last ? '' : ', ')"></span>
+            </div>
+            <div class="col text-right">
+                <a href="/logout" class="btn btn-primary logout-button">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="container">
-    <h2>Форма добавления пользователя</h2>
+    <h2>Добавить нового пользователя</h2>
     <form th:action="@{/admin/add}" th:object="${user}" method="post">
-        <label for="name">Имя:</label>
-        <input type="text" id="name" th:field="*{name}" required>
-        <div class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Ошибка имени</div>
-
-        <label for="password">Пароль:</label>
-        <input type="password" id="password" th:field="*{password}" required>
-        <div class="error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Ошибка пароля</div>
-
-        <label for="surname">Фамилия:</label>
-        <input type="text" id="surname" th:field="*{surname}" required>
-        <div class="error" th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}">Ошибка фамилии</div>
-
-        <label for="age">Возраст:</label>
-        <input type="number" id="age" th:field="*{age}" required>
-        <div class="error" th:if="${#fields.hasErrors('age')}" th:errors="*{age}">Ошибка возраста</div>
-
-        <label for="roles">Роли:</label>
-        <select multiple id="roles" name="selectedRoles">
-            <option th:each="role : ${allRoles}" th:value="${role.id}" th:text="${role.roleName}"></option>
-        </select>
-
-        <input type="submit" value="Добавить пользователя">
+        <div>
+            <label for="name">Имя:</label>
+            <input type="text" id="name" th:field="*{name}" required/>
+            <div class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Ошибка имени</div>
+        </div>
+        <div>
+            <label for="surname">Фамилия:</label>
+            <input type="text" id="surname" th:field="*{surname}" required/>
+            <div class="error" th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}">Ошибка фамилии</div>
+        </div>
+        <div>
+            <label for="age">Возраст:</label>
+            <input type="number" id="age" th:field="*{age}" required/>
+            <div class="error" th:if="${#fields.hasErrors('age')}" th:errors="*{age}">Ошибка возраста</div>
+        </div>
+        <div>
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" th:field="*{password}" required/>
+            <div class="error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Ошибка пароля</div>
+        </div>
+        <div>
+            <label for="roles">Роли:</label>
+            <select multiple id="roles" name="selectedRoles">
+                <option th:each="role : ${allRoles}" th:value="${role.id}"
+                        th:selected="${user?.roles?.contains(role)}" th:text="${role.roleName}"></option>
+            </select>
+        </div>
+        <div>
+            <button type="submit">Сохранить изменения</button>
+        </div>
     </form>
 </div>
+<!-- Bootstrap JS и Popper.js -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
 </html>
