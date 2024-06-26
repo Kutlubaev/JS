@@ -104,6 +104,13 @@
             background-color: #007bff; /* Синий цвет активной кнопки */
             color: white; /* Белый текст */
         }
+        .main-content {
+            margin-left: 170px; /* Отступ слева равен ширине .sidebar + padding */
+        }
+
+        .container {
+            margin-left: 170px;
+        }
     </style>
 </head>
 <body>
@@ -125,6 +132,7 @@
         </div>
     </div>
 </div>
+<div class="main-content">
 <div class="container">
     <h2>Добавить нового пользователя</h2>
     <form th:action="@{/admin/add}" th:object="${user}" method="post">
@@ -159,6 +167,7 @@
             <button type="submit">Сохранить изменения</button>
         </div>
     </form>
+</div>
 </div>
 <!-- Bootstrap JS и Popper.js -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
