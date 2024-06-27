@@ -41,7 +41,7 @@ public class UserRestController {
     // Создание или обновление пользователя
     @PutMapping("/user/{userId}")
     public ResponseEntity<?> update(@PathVariable int userId, @RequestBody Map<String, Object> updates) {
-        //User updatedUser = userService.editUserWithRoles(userId, updates);
+        User updatedUser = userService.editUserWithRoles(userId, updates);
         return ResponseEntity.ok(updatedUser);
     }
 
