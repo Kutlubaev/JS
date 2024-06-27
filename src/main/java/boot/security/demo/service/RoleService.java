@@ -29,8 +29,9 @@ public class RoleService {
     }
 
 
-    public Optional<Role> getByName(String name){
-        return roleRepository.findByRoleName(name);
+    public Role getByName(String roleName){
+        return roleRepository.findByRoleName(roleName)
+                .orElseThrow(() -> new EntityNotFoundException("Role with id " + roleName + " not found"));
     }
 
     @Transactional

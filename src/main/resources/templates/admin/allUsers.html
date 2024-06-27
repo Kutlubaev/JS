@@ -170,7 +170,8 @@
                 </ul>
             </td>
             <td>
-                <a th:href="@{/admin/edit(id=${user.id})}" class="edit-button">Редактировать</a>
+<!--                <a th:href="@{/admin/edit(id=${user.id})}" class="edit-button">Редактировать</a>-->
+                <button id="edit-user" type="button" class="btn btn-success" data-toggle="modal" data-target="#userEditDialog" th:data-userId="${user.id}"><i class="fas fa-edit"></i></button>
                 <a th:href="@{/admin/delete(id=${user.id})}" class="delete-button">Удалить</a>
             </td>
         </tr>
@@ -178,11 +179,147 @@
     </table>
 </div>
 </div>
+<div class="modal fade" id="userEditDialog" tabindex="-1" role="dialog" aria-labelledby="userEditDialogLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userEditDialogLabel">Edit user</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <input type="hidden" id="user-id">
+                    <div class="form-group">
+                        <label for="user-name" class="col-form-label">User name</label>
+                        <input type="text" class="form-control" id="user-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-surname" class="col-form-label">Surname</label>
+                        <input type="text" class="form-control" id="user-surname">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-age" class="col-form-label">Age</label>
+                        <input type="number" class="form-control" id="user-age">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-password" class="col-form-label">Password</label>
+                        <input type="password" class="form-control" id="user-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-roles" class="col-form-label">Roles</label>
+                        <select class="form-control" id="user-roles" multiple>
+                            <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+                            <option value="ROLE_USER">ROLE_USER</option>
+                            <option value="ROLE_GUEST">ROLE_GUEST</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button id="save-user-button" type="button" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Ваш JavaScript код для обработки формы -->
 
 <!-- Подключение JavaScript библиотеки Bootstrap для работы модального окна -->
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<!--<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>-->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>-->
+<!--<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>-->
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+<script>
+    $('#userEditDialog').on('shown.bs.modal', function (event) {
+        let button = $(event.relatedTarget); // Кнопка, которая вызвала модальное окно
+        let userId = button.data('userid'); // Извлечение информации из атрибутов data-*
+
+        if (userId) {
+            $.get({
+                url: '/api/v1/user/' + userId,
+                success: (userData) => {
+                    let modal = $(this);
+                    modal.find('#user-id').val(userData.id);
+                    modal.find('#user-name').val(userData.name);
+                    modal.find('#user-password').val(userData.password);
+                    modal.find('#user-surname').val(userData.surname);
+                    modal.find('#user-age').val(userData.age);
+
+                    // Запрос списка ролей с сервера
+                    $.get({
+                        url: '/api/v1/roles',
+                        success: (rolesData) => {
+                            let rolesSelect = modal.find('#user-roles');
+                            rolesSelect.empty(); // Очистка предыдущих опций
+                            rolesData.forEach(function(role) {
+                                let isSelected = userData.roles.some(userRole => userRole.roleName === role.roleName);
+                                rolesSelect.append(new Option(role.roleName, role.roleName, isSelected, isSelected));
+                            });
+                        },
+                        error: (err) => {
+                            console.error('Ошибка при получении ролей:', err);
+                        }
+                    });
+                },
+                error: (err) => {
+                    alert('Ошибка при получении данных пользователя:', err);
+                }
+            });
+        }
+    });
+
+    $('#save-user-button').click(function() {
+        let modal = $('#userEditDialog');
+        let selectedRoles = modal.find('#user-roles').val(); // Получение выбранных ролей
+        let rolesArray = selectedRoles.map(roleName => ({ roleName }));
+        let ageValue = modal.find('#user-age').val();
+        let age = ageValue ? parseInt(ageValue) : null; // Если ageValue не пустое, преобразуем в число, иначе null
+
+        let user = {
+            name: modal.find('#user-name').val(),
+            password: modal.find('#user-password').val(),
+            surname: modal.find('#user-surname').val(),
+            age: age, // Используем переменную age, определенную выше
+            roles: rolesArray // Установка ролей как массива объектов
+        };
+
+        // Получение userId из модального окна или другого источника
+        let userId = modal.find('#user-id').val() ;
+
+        if (userId) {
+            user.id = userId; // Установка ID пользователя, если он определен
+            $.ajax({
+                url: '/api/v1/user/' + userId, // Добавление слэша перед userId
+                type: 'PUT',
+                data: JSON.stringify(user),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: () => {
+                    location.reload(); // Перезагрузка страницы после успешного сохранения
+                },
+                error: (err) => {
+                    alert(err.responseText || 'Произошла ошибка при сохранении пользователя.');
+                }
+            });
+        } else {
+            console.error('UserID не определен.'); // Логирование ошибки, если userId не определен
+        }
+
+        modal.modal('hide'); // Закрытие модального окна
+    });
+</script>
+
 </body>
 </html>
