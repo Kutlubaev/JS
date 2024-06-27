@@ -76,64 +76,97 @@ public class UserService {
         userRepository.delete(user);
     }
 
+//    @Transactional
+//    public User editUserWithRoles(int userId, Map<String, Object> updates) {
+//        // Находим пользователя по ID
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
+//
+//        // Обновляем информацию о пользователе
+//        updates.forEach((key, value) -> {
+//            switch (key) {
+//                case "id":
+//                    if (value instanceof Integer) {
+//                        user.setId((Integer) value);
+//                    } else {
+//                        try {
+//                            // Попытка преобразовать строку в Integer
+//                            user.setId(Integer.parseInt(value.toString()));
+//                        } catch (NumberFormatException e) {
+//                            throw new IllegalArgumentException("Некорректный формат ID: " + value);
+//                        }
+//                    }
+//                    break;
+//                case "name":
+//                    user.setName((String) value);
+//                    break;
+//                case "password":
+//                    user.setPassword((String) value);
+//                    break;
+//                case "surname":
+//                    user.setSurname((String) value);
+//                    break;
+//                case "age":
+//                    if (value instanceof String) {
+//                        // Преобразование строки в Integer
+//                        user.setAge(Integer.parseInt((String) value));
+//                    } else {
+//                        user.setAge((Integer) value);
+//                    }
+//                    break;
+//                // ... обновление других полей ...
+//                case "roles":
+//                    // Обработка списка ролей
+//                    Set<Role> assignedRoles = new HashSet<>();
+//                    // Предполагаем, что value является списком объектов с полем roleName
+//                    List<Map<String, String>> rolesList = (List<Map<String, String>>) value;
+//                    rolesList.forEach(roleMap -> {
+//                        String roleName = roleMap.get("roleName");
+//                        Role role = roleService.getByName(roleName);
+//                        if (role == null) {
+//                            throw new RuntimeException("Роль с именем " + roleName + " не найдена");
+//                        }
+//                        assignedRoles.add(role);
+//                    });
+//                    user.setRoles(assignedRoles);
+//                    break;
+//                default:
+//                    throw new IllegalArgumentException("Неизвестное поле: " + key);
+//            }
+//        });
+//
+//        // Сохраняем обновленного пользователя
+//        return userRepository.save(user);
+//    }
+
     @Transactional
-    public User editUserWithRoles(int userId, Map<String, Object> updates) {
-        // Находим пользователя по ID
+    public User editUserWithRoles(int userId, User userUpdates) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
 
         // Обновляем информацию о пользователе
-        updates.forEach((key, value) -> {
-            switch (key) {
-                case "id":
-                    if (value instanceof Integer) {
-                        user.setId((Integer) value);
-                    } else {
-                        try {
-                            // Попытка преобразовать строку в Integer
-                            user.setId(Integer.parseInt(value.toString()));
-                        } catch (NumberFormatException e) {
-                            throw new IllegalArgumentException("Некорректный формат ID: " + value);
-                        }
-                    }
-                    break;
-                case "name":
-                    user.setName((String) value);
-                    break;
-                case "password":
-                    user.setPassword((String) value);
-                    break;
-                case "surname":
-                    user.setSurname((String) value);
-                    break;
-                case "age":
-                    if (value instanceof String) {
-                        // Преобразование строки в Integer
-                        user.setAge(Integer.parseInt((String) value));
-                    } else {
-                        user.setAge((Integer) value);
-                    }
-                    break;
-                // ... обновление других полей ...
-                case "roles":
-                    // Обработка списка ролей
-                    Set<Role> assignedRoles = new HashSet<>();
-                    // Предполагаем, что value является списком объектов с полем roleName
-                    List<Map<String, String>> rolesList = (List<Map<String, String>>) value;
-                    rolesList.forEach(roleMap -> {
-                        String roleName = roleMap.get("roleName");
+        if (userUpdates.getName() != null) {
+            user.setName(userUpdates.getName());
+        }
+        if (userUpdates.getSurname() != null) {
+            user.setSurname(userUpdates.getSurname());
+        }
+        user.setAge(userUpdates.getAge());
+
+        // Обновляем роли пользователя, если они предоставлены
+        if (userUpdates.getRoles() != null && !userUpdates.getRoles().isEmpty()) {
+            Set<Role> updatedRoles = userUpdates.getRoles().stream()
+                    .map(roleName -> {
                         Role role = roleService.getByName(roleName);
                         if (role == null) {
-                            throw new RuntimeException("Роль с именем " + roleName + " не найдена");
+                            // Обработка ситуации, когда роль не найдена
+                            // Например, можно выбросить исключение или пропустить добавление этой роли
                         }
-                        assignedRoles.add(role);
-                    });
-                    user.setRoles(assignedRoles);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Неизвестное поле: " + key);
-            }
-        });
+                        return role;
+                    })
+                    .filter(Objects::nonNull) // Исключаем null значения
+                    .collect(Collectors.toSet());
+        }
 
         // Сохраняем обновленного пользователя
         return userRepository.save(user);

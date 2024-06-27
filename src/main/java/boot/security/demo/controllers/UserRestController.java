@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,7 @@ public class UserRestController {
     // Создание или обновление пользователя
     @PutMapping("/user/{userId}")
     public ResponseEntity<?> update(@PathVariable int userId, @RequestBody Map<String, Object> updates) {
-        User updatedUser = userService.editUserWithRoles(userId, updates);
+        //User updatedUser = userService.editUserWithRoles(userId, updates);
         return ResponseEntity.ok(updatedUser);
     }
 
@@ -48,6 +49,30 @@ public class UserRestController {
     public ResponseEntity<List<Role>> getAllRoles() {
         List<Role> roles = roleService.getAll(); // Получение списка ролей из сервиса
         return ResponseEntity.ok(roles);
+    }
+
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable(value = "id") int userId) {
+        return userService.getById(userId)
+                .map(user -> {
+                    userService.delete(user);
+                    return ResponseEntity.ok().build();
+                })
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/{userId}/roles")
+    public ResponseEntity<List<String>> getUserRoles(@PathVariable int userId) {
+        try {
+            User user = userService.getById(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
+            List<String> roles = user.getRoles().stream()
+                    .map(Role::getRoleName)
+                    .collect(Collectors.toList());
+            return new ResponseEntity<>(roles, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
 

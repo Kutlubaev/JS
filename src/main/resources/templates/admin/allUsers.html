@@ -172,7 +172,7 @@
             <td>
 <!--                <a th:href="@{/admin/edit(id=${user.id})}" class="edit-button">Редактировать</a>-->
                 <button id="edit-user" type="button" class="btn btn-success" data-toggle="modal" data-target="#userEditDialog" th:data-userId="${user.id}"><i class="fas fa-edit"></i></button>
-                <a th:href="@{/admin/delete(id=${user.id})}" class="delete-button">Удалить</a>
+                <button id="delete-user" type="button" class="btn btn-danger" data-toggle="modal" data-target="#userDeleteDialog" th:data-userId="${user.id}"><i class="fas fa-trash-alt"></i></button>
             </td>
         </tr>
         </tbody>
@@ -194,18 +194,22 @@
                     <div class="form-group">
                         <label for="user-name" class="col-form-label">User name</label>
                         <input type="text" class="form-control" id="user-name">
+                        <div id="user-name-error" class="validation-error" style="display: none; color: red;"></div>
                     </div>
                     <div class="form-group">
                         <label for="user-surname" class="col-form-label">Surname</label>
                         <input type="text" class="form-control" id="user-surname">
+                        <div id="user-surname-error" class="validation-error" style="display: none; color: red;"></div>
                     </div>
                     <div class="form-group">
                         <label for="user-age" class="col-form-label">Age</label>
                         <input type="number" class="form-control" id="user-age">
+                        <div id="user-age-error" class="validation-error" style="display: none; color: red;"></div>
                     </div>
                     <div class="form-group">
                         <label for="user-password" class="col-form-label">Password</label>
                         <input type="password" class="form-control" id="user-password">
+                        <div id="user-password-error" class="validation-error" style="display: none; color: red;"></div>
                     </div>
                     <div class="form-group">
                         <label for="user-roles" class="col-form-label">Roles</label>
@@ -221,6 +225,49 @@
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button id="save-user-button" type="button" class="btn btn-primary">Save</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно удаления пользователя -->
+<div class="modal fade" id="userDeleteDialog" tabindex="-1" role="dialog" aria-labelledby="userDeleteDialogTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userDeleteDialogTitle">Удаление пользователя</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Вы уверены, что хотите удалить пользователя?</p>
+                    <div class="form-group">
+                        <label for="delete-user-id">ID:</label>
+                        <input type="text" id="delete-user-id" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="delete-user-name">Имя:</label>
+                        <input type="text" id="delete-user-name" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="delete-user-surname">Фамилия:</label>
+                        <input type="text" id="delete-user-surname" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="delete-user-age">Возраст:</label>
+                        <input type="text" id="delete-user-age" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-roles-list">Роли:</label>
+                        <input type="text" id="user-roles-list" class="form-control" readonly>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete">Удалить</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -242,6 +289,22 @@
         crossorigin="anonymous"></script>
 
 <script>
+
+    // Функция для отображения сообщения об ошибке
+    function showValidationError(selector, message) {
+        let modal = $('#userEditDialog');
+        let errorContainer = modal.find(selector);
+        errorContainer.text(message);
+        errorContainer.show();
+    }
+
+    // Функция для скрытия сообщений об ошибках
+    function clearValidationErrors() {
+        let modal = $('#userEditDialog');
+        modal.find('.validation-error').hide(); // Скрываем все элементы с классом 'validation-error'
+    }
+
+
     $('#userEditDialog').on('shown.bs.modal', function (event) {
         let button = $(event.relatedTarget); // Кнопка, которая вызвала модальное окно
         let userId = button.data('userid'); // Извлечение информации из атрибутов data-*
@@ -280,7 +343,40 @@
         }
     });
 
-    $('#save-user-button').click(function() {
+    // Функция валидации данных формы
+    function validateUserData(user) {
+        clearValidationErrors(); // Очистка предыдущих ошибок
+        let isValid = true;
+
+        // Проверка имени пользователя
+        if (!user.name) {
+            showValidationError('#user-name-error', 'Ошибка имени.');
+            isValid = false;
+        }
+
+        // Проверка возраста пользователя
+        if (user.age && (user.age < 0 || user.age > 150)) {
+            showValidationError('#user-age-error', 'Ошибка возраста.');
+            isValid = false;
+        }
+
+        if (!user.surname) {
+            showValidationError('#user-surname-error', 'Ошибка фамилии.');
+            isValid = false;
+        }
+
+        if (!user.password) {
+            showValidationError('#user-password-error', 'Ошибка пароля.');
+            isValid = false;
+        }
+
+        // Добавьте дополнительные проверки по мере необходимости
+
+        return isValid;
+    }
+
+
+    $('#save-user-button').off('click').on('click', function() {
         let modal = $('#userEditDialog');
         let selectedRoles = modal.find('#user-roles').val(); // Получение выбранных ролей
         let rolesArray = selectedRoles.map(roleName => ({ roleName }));
@@ -294,6 +390,10 @@
             age: age, // Используем переменную age, определенную выше
             roles: rolesArray // Установка ролей как массива объектов
         };
+
+        if (!validateUserData(user)) {
+            return; // Прерываем выполнение, если данные не прошли валидацию
+        }
 
         // Получение userId из модального окна или другого источника
         let userId = modal.find('#user-id').val() ;
@@ -318,6 +418,55 @@
         }
 
         modal.modal('hide'); // Закрытие модального окна
+    });
+
+
+    $('#userDeleteDialog').on('shown.bs.modal', function (event) {
+        let button = $(event.relatedTarget); // Кнопка, которая вызвала модальное окно
+        let userId = button.data('userid'); // Извлечение информации из атрибутов data-*
+
+        $.get({
+            url: '/api/v1/user/' + userId,
+            success: (userData) => {
+                let modal = $('#userDeleteDialog');
+                modal.find('#delete-user-id').val(userData.id);
+                modal.find('#delete-user-name').val(userData.name);
+                modal.find('#delete-user-surname').val(userData.surname);
+                modal.find('#delete-user-age').val(userData.age);
+                fetch(`/api/v1/${userId}/roles`)
+                    .then(response => response.json())
+                    .then(roles => {
+                        if (Array.isArray(roles)) {
+                            // Создаем строку со всеми ролями для отображения
+                            const rolesList = roles.join(', ');
+                            modal.find('#user-roles-list').val(rolesList);
+                        } else {
+                            console.error('Ожидался массив ролей, но получен:', roles);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка при получении ролей:', error);
+                    });
+            },
+            error: (err) => {
+                alert('Ошибка при получении данных пользователя:', err);
+            }
+        });
+    });
+
+    // Обработчик события 'click' для кнопки 'confirm-delete'
+    $('#confirm-delete').on('click', function() {
+        let userId = $('#delete-user-id').val(); // Получение ID пользователя из модального окна
+        $.ajax({
+            url: '/api/v1/user/' + userId,
+            type: 'DELETE',
+            success: () => {
+                location.reload(); // Обновление интерфейса или перезагрузка страницы
+            },
+            error: (err) => {
+                alert('Ошибка при удалении пользователя:', err);
+            }
+        });
     });
 </script>
 
