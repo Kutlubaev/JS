@@ -155,17 +155,20 @@ public class UserService {
 //
 //        // Обновляем роли пользователя, если они предоставлены
 //        if (userUpdates.getRoles() != null && !userUpdates.getRoles().isEmpty()) {
-//            Set<Role> updatedRoles = userUpdates.getRoles().stream()
-//                    .map(roleName -> {
-//                        Role role = roleService.getByName(roleName);
-//                        if (role == null) {
-//                            // Обработка ситуации, когда роль не найдена
-//                            // Например, можно выбросить исключение или пропустить добавление этой роли
-//                        }
-//                        return role;
-//                    })
-//                    .filter(Objects::nonNull) // Исключаем null значения
-//                    .collect(Collectors.toSet());
+//            // Обработка списка ролей
+//            Set<Role> assignedRoles = new HashSet<>();
+//            // Предполагаем, что value является списком объектов с полем roleName
+//            List<Map<String, String>> rolesList = (List<Map<String, String>>) value;
+//            rolesList.forEach(roleMap -> {
+//                String roleName = roleMap.get("roleName");
+//                Role role = roleService.getByName(roleName);
+//                if (role == null) {
+//                    throw new RuntimeException("Роль с именем " + roleName + " не найдена");
+//                }
+//                assignedRoles.add(role);
+//            });
+//            user.setRoles(assignedRoles);
+//
 //        }
 //
 //        // Сохраняем обновленного пользователя

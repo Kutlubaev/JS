@@ -29,10 +29,54 @@
     .logout-button:hover {
       background-color: #d80c26; /* Темно-зеленый цвет при наведении */
     }
+    .sidebar {
+      position: fixed; /* Фиксированное положение */
+      left: 0; /* Прижать к левому краю */
+      top: 50px; /* Прижать к верху */
+      width: 250px; /* Ширина колонки */
+      background: #fff; /* Белый фон */
+      height: 100vh; /* Высота на весь экран */
+      padding: 10px; /* Внутренние отступы */
+      box-sizing: border-box; /* Размеры включают padding */
+    }
+
+    /* Обновленные стили для кнопок */
+    .nav-button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 5px;
+      background: transparent; /* Прозрачный фон */
+      text-align: left;
+      border: none; /* Убрать границу */
+      outline: none; /* Убрать контур */
+      cursor: pointer; /* Курсор в виде указателя */
+      transition: background-color 0.3s; /* Плавное изменение фона */
+    }
+    .nav-button:hover {
+      background-color: #e0e0e0; /* Цвет фона при наведении */
+    }
+    .nav-button.active {
+      background-color: #007bff; /* Синий цвет активной кнопки */
+      color: white; /* Белый текст */
+    }
+    .main-content {
+      margin-left: 170px; /* Отступ слева равен ширине .sidebar + padding */
+    }
+
+    .container {
+      margin-left: 170px;
+    }
   </style>
 </head>
 <body>
 
+<!-- Левая боковая колонка -->
+<div class="sidebar">
+  <button class="nav-button active" onclick="location.href='/admin/'">Панель администратора</button>
+  <button class="nav-button" onclick="location.href='/user'">Информация о пользователе</button>
+</div>
+<!-- Полоса в верхней части страницы -->
 <div class="user-bar">
   <div class="container">
     <div class="row">

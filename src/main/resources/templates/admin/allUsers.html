@@ -5,29 +5,7 @@
     <title>Список пользователей</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <style>
-        .edit-button, .delete-button, .add-button{
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .edit-button {
-            background-color: #20a0c3;
-            color: white;
-        }
-        .delete-button {
-            background-color: #dc3545;
-            color: white;
-        }
-        .add-button {
-            background-color: #28a745;
-            color: white;
-        }
-        .edit-button:hover, .delete-button:hover, .add-button:hover {
-            color: #ffffff; /*  цвет текста при наведении */
-        }
+
         .logout-button {
             position: fixed;
             right: 50px;
@@ -114,6 +92,27 @@
         .container {
             margin-left: 170px;
         }
+        /* Стили для кнопки редактирования */
+        #edit-user {
+            background-color: #1e60d5; /* светло-синий цвет */
+            color: white; /* белый текст */
+            border: none; /* без рамки */
+        }
+
+        #edit-user i {
+            margin-right: 5px; /* отступ иконки от текста */
+        }
+
+        /* Стили для кнопки удаления */
+        #delete-user {
+            background-color: red; /* красный цвет */
+            color: white; /* белый текст */
+            border: none; /* без рамки */
+        }
+
+        #delete-user i {
+            margin-right: 5px; /* отступ иконки от текста */
+        }
     </style>
 </head>
 <body>
@@ -136,13 +135,18 @@
         </div>
     </div>
 </div>
+<div id="add-user-form" class="container mt-3" style="display: none;">
+    <!-- Форма добавления нового пользователя -->
+    <!-- ... -->
+</div>
 <div class="main-content">
 <div class="container mt-5">
     <h1>Панель администратора</h1>
 </div>
 <div class="container mt-3">
     <a href="/admin/" class="tab active">Таблица пользователей</a>
-    <a href="/admin/add" class="tab light-blue">Добавить нового пользователя</a>
+<!--    <a href="/admin/add" class="tab light-blue">Добавить нового пользователя</a>-->
+    <a href="javascript:void(0);" class="tab light-blue" onclick="showAddUserForm()">Добавить нового пользователя</a>
 </div>
 <div class="container mt-3">
     <h2>Все пользователи</h2>
@@ -170,9 +174,8 @@
                 </ul>
             </td>
             <td>
-<!--                <a th:href="@{/admin/edit(id=${user.id})}" class="edit-button">Редактировать</a>-->
-                <button id="edit-user" type="button" class="btn btn-success" data-toggle="modal" data-target="#userEditDialog" th:data-userId="${user.id}"><i class="fas fa-edit"></i></button>
-                <button id="delete-user" type="button" class="btn btn-danger" data-toggle="modal" data-target="#userDeleteDialog" th:data-userId="${user.id}"><i class="fas fa-trash-alt"></i></button>
+                <button id="edit-user" type="button" class="btn btn-success" data-toggle="modal" data-target="#userEditDialog" th:data-userId="${user.id}"><i class="fas fa-edit"></i> Редактировать</button>
+                <button id="delete-user" type="button" class="btn btn-danger" data-toggle="modal" data-target="#userDeleteDialog" th:data-userId="${user.id}"><i class="fas fa-trash-alt"></i> Удалить</button>
             </td>
         </tr>
         </tbody>
@@ -348,29 +351,25 @@
         clearValidationErrors(); // Очистка предыдущих ошибок
         let isValid = true;
 
-        // Проверка имени пользователя
-        if (!user.name) {
-            showValidationError('#user-name-error', 'Ошибка имени.');
+        // Паттерн для имени: только буквы, от 2 до 30 символов
+        const namePattern = /^[а-яА-ЯёЁa-zA-Z]{2,30}$/;
+        if (!namePattern.test(user.name)) {
+            showValidationError('#user-name-error', 'Имя должно содержать только буквы и быть длиной от 2 до 30 символов.');
             isValid = false;
         }
 
-        // Проверка возраста пользователя
-        if (user.age && (user.age < 0 || user.age > 150)) {
-            showValidationError('#user-age-error', 'Ошибка возраста.');
+        // Паттерн для фамилии: только буквы, от 2 до 30 символов
+        const surnamePattern = /^[а-яА-ЯёЁa-zA-Z]{2,30}$/;
+        if (!surnamePattern.test(user.surname)) {
+            showValidationError('#user-surname-error', 'Фамилия должна содержать только буквы и быть длиной от 2 до 30 символов.');
             isValid = false;
         }
 
-        if (!user.surname) {
-            showValidationError('#user-surname-error', 'Ошибка фамилии.');
+        // Проверка возраста: должен быть больше 0
+        if (user.age <= 0) {
+            showValidationError('#user-age-error', 'Возраст должен быть больше 0.');
             isValid = false;
         }
-
-        if (!user.password) {
-            showValidationError('#user-password-error', 'Ошибка пароля.');
-            isValid = false;
-        }
-
-        // Добавьте дополнительные проверки по мере необходимости
 
         return isValid;
     }
