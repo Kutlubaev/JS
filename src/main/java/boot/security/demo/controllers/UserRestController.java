@@ -9,13 +9,13 @@ import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -32,13 +32,26 @@ public class UserRestController {
     @Autowired
     private RoleService roleService;
 
-    // Получение пользователя по ID
     @GetMapping("/user/{userId}")
     public User findById(@PathVariable int userId) {
         return userService.getById(userId).orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
     }
 
-    // Создание или обновление пользователя
+    @PostMapping("/add")
+    public ResponseEntity<?> saveNewUser(@RequestBody @Valid User user, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            Map<String, String> validationErrors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(fieldError ->
+                    validationErrors.put(fieldError.getField(), fieldError.getDefaultMessage())
+            );
+            return ResponseEntity.badRequest().body(validationErrors);
+        }
+
+        userService.saveUser(user);
+        return ResponseEntity.ok(user);
+    }
+
     @PutMapping("/user/{userId}")
     public ResponseEntity<?> update(@PathVariable int userId, @RequestBody Map<String, Object> updates) {
         User updatedUser = userService.editUserWithRoles(userId, updates);
@@ -47,7 +60,7 @@ public class UserRestController {
 
     @GetMapping("/roles")
     public ResponseEntity<List<Role>> getAllRoles() {
-        List<Role> roles = roleService.getAll(); // Получение списка ролей из сервиса
+        List<Role> roles = roleService.getAll();
         return ResponseEntity.ok(roles);
     }
 
@@ -75,12 +88,4 @@ public class UserRestController {
         }
     }
 
-
-
-//    @DeleteMapping("/{userId}")
-//    public void delete(@PathVariable int userId) {
-//        userService.delete(userId);
-//    }
-
-    // Дополнительные методы можно добавить здесь
 }

@@ -135,20 +135,16 @@
         </div>
     </div>
 </div>
-<div id="add-user-form" class="container mt-3" style="display: none;">
-    <!-- Форма добавления нового пользователя -->
-    <!-- ... -->
-</div>
 <div class="main-content">
 <div class="container mt-5">
     <h1>Панель администратора</h1>
 </div>
-<div class="container mt-3">
-    <a href="/admin/" class="tab active">Таблица пользователей</a>
-<!--    <a href="/admin/add" class="tab light-blue">Добавить нового пользователя</a>-->
-    <a href="javascript:void(0);" class="tab light-blue" onclick="showAddUserForm()">Добавить нового пользователя</a>
-</div>
-<div class="container mt-3">
+    <div class="container mt-3">
+        <a href="javascript:void(0);" class="tab active" onclick="showUsersTable()" data-target="table">Таблица пользователей</a>
+        <a href="javascript:void(0);" class="tab light-blue" onclick="showAddUserForm()" data-target="form">Добавить нового пользователя</a>
+    </div>
+<!--    Таблица пользователей-->
+    <div class="container mt-3" id="users-table" style="display: none;">
     <h2>Все пользователи</h2>
     <table class="table table-responsive table-striped">
         <!-- Заголовки и строки таблицы -->
@@ -182,6 +178,47 @@
     </table>
 </div>
 </div>
+<!--Форма добавления нового пользователя-->
+<div class="main-content">
+<div class="container mt-3" id="add-user-form" style="display: none;">
+    <h2>Добавить нового пользователя</h2>
+    <form id="new-user-form">
+        <div class="form-group">
+            <label for="new-user-name" class="col-form-label">Имя пользователя</label>
+            <input type="text" class="form-control" id="new-user-name">
+            <div id="error-name" class="validation-error" style="display: none; color: red;"></div>
+        </div>
+        <div class="form-group">
+            <label for="new-user-surname" class="col-form-label">Фамилия</label>
+            <input type="text" class="form-control" id="new-user-surname">
+            <div id="error-surname" class="validation-error" style="display: none; color: red;"></div>
+        </div>
+        <div class="form-group">
+            <label for="new-user-age" class="col-form-label">Возраст</label>
+            <input type="number" class="form-control" id="new-user-age">
+            <div id="error-age" class="validation-error" style="display: none; color: red;"></div>
+        </div>
+        <div class="form-group">
+            <label for="new-user-password" class="col-form-label">Пароль</label>
+            <input type="password" class="form-control" id="new-user-password">
+            <div id="error-password" class="validation-error" style="display: none; color: red;"></div>
+        </div>
+        <div class="form-group">
+            <label class="font-weight-bold" for="new-user-roles">Role</label>
+            <select class="custom-select form-control" id="new-user-roles"
+                    name="roles"
+                    multiple
+                    size="2">
+                <option value="ROLE_USER">USER</option>
+                <option value="ROLE_ADMIN">ADMIN</option>
+                <option value="ROLE_GUEST">GUEST</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Добавить</button>
+    </form>
+</div>
+</div>
+<!--Модальное окно редактирования пользователя-->
 <div class="modal fade" id="userEditDialog" tabindex="-1" role="dialog" aria-labelledby="userEditDialogLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -274,12 +311,26 @@
         </div>
     </div>
 </div>
-<!-- Ваш JavaScript код для обработки формы -->
+<script>
 
-<!-- Подключение JavaScript библиотеки Bootstrap для работы модального окна -->
-<!--<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>-->
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>-->
-<!--<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>-->
+    function showUsersTable() {
+        document.getElementById('users-table').style.display = 'block';
+        document.getElementById('add-user-form').style.display = 'none';
+
+        document.querySelector('.tab[data-target="table"]').classList.add('active');
+        document.querySelector('.tab[data-target="form"]').classList.remove('active');
+    }
+
+    function showAddUserForm() {
+        document.getElementById('users-table').style.display = 'none';
+        document.getElementById('add-user-form').style.display = 'block';
+        // Обновляем стиль вкладок
+        document.querySelector('.tab[data-target="form"]').classList.add('active');
+        document.querySelector('.tab[data-target="table"]').classList.remove('active');
+    }
+
+    window.onload = showUsersTable;
+</script>
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"
         integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT"
@@ -304,13 +355,12 @@
     // Функция для скрытия сообщений об ошибках
     function clearValidationErrors() {
         let modal = $('#userEditDialog');
-        modal.find('.validation-error').hide(); // Скрываем все элементы с классом 'validation-error'
+        modal.find('.validation-error').hide();
     }
 
-
     $('#userEditDialog').on('shown.bs.modal', function (event) {
-        let button = $(event.relatedTarget); // Кнопка, которая вызвала модальное окно
-        let userId = button.data('userid'); // Извлечение информации из атрибутов data-*
+        let button = $(event.relatedTarget);
+        let userId = button.data('userid');
 
         if (userId) {
             $.get({
@@ -323,7 +373,6 @@
                     modal.find('#user-surname').val(userData.surname);
                     modal.find('#user-age').val(userData.age);
 
-                    // Запрос списка ролей с сервера
                     $.get({
                         url: '/api/v1/roles',
                         success: (rolesData) => {
@@ -345,27 +394,26 @@
             });
         }
     });
-
     // Функция валидации данных формы
     function validateUserData(user) {
         clearValidationErrors(); // Очистка предыдущих ошибок
         let isValid = true;
 
-        // Паттерн для имени: только буквы, от 2 до 30 символов
+
         const namePattern = /^[а-яА-ЯёЁa-zA-Z]{2,30}$/;
         if (!namePattern.test(user.name)) {
             showValidationError('#user-name-error', 'Имя должно содержать только буквы и быть длиной от 2 до 30 символов.');
             isValid = false;
         }
 
-        // Паттерн для фамилии: только буквы, от 2 до 30 символов
+
         const surnamePattern = /^[а-яА-ЯёЁa-zA-Z]{2,30}$/;
         if (!surnamePattern.test(user.surname)) {
             showValidationError('#user-surname-error', 'Фамилия должна содержать только буквы и быть длиной от 2 до 30 символов.');
             isValid = false;
         }
 
-        // Проверка возраста: должен быть больше 0
+
         if (user.age <= 0) {
             showValidationError('#user-age-error', 'Возраст должен быть больше 0.');
             isValid = false;
@@ -374,55 +422,190 @@
         return isValid;
     }
 
+    function validateUserDataAdd(userData) {
+        const errors = {};
+
+
+        const namePattern = /^[а-яА-ЯёЁa-zA-Z]{2,30}$/;
+        if (!namePattern.test(userData.name)) {
+            errors.name = 'Имя должно содержать только буквы и быть длиной от 2 до 30 символов.';
+        }
+
+        const surnamePattern = /^[а-яА-ЯёЁa-zA-Z]{2,30}$/;
+        if (!surnamePattern.test(userData.surname)) {
+            errors.surname = 'Фамилия должна содержать только буквы и быть длиной от 2 до 30 символов.';
+        }
+
+        if (userData.age && (isNaN(userData.age) || userData.age <= 0 || userData.age > 120)) {
+            errors.age = 'Возраст должен быть числом между 1 и 120.';
+        }
+
+        return errors;
+    }
+
+    function displayValidationErrorsAdd(errors) {
+
+        const errorElements = document.querySelectorAll('.validation-error');
+        errorElements.forEach(element => {
+            element.textContent = '';
+        });
+
+        for (const key in errors) {
+            if (errors.hasOwnProperty(key)) {
+                const errorDisplayElement = document.getElementById(`error-${key}`);
+                if (errorDisplayElement) {
+                    errorDisplayElement.textContent = errors[key];
+                    errorDisplayElement.style.display = 'block'; // Показываем элемент с ошибкой
+                }
+            }
+        }
+    }
+
+    //
+    //
+    //                ДОБАВЛЕНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ
+    //
+//
+    async function getRoles() {
+        try {
+            const response = await fetch("/api/v1/roles");
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+            const roles = await response.json();
+            const rolesSelect = document.getElementById('new-user-roles');
+            rolesSelect.innerHTML = '';
+            roles.forEach(role => {
+                const option = document.createElement('option');
+                option.value = role.id;
+                option.textContent = role.roleName;
+                rolesSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Не удалось загрузить роли:', error);
+
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', getRoles);
+
+    async function createNewUser(user) {
+        console.log("Отправка данных пользователя:", user);
+        const response = await fetch("/api/v1/add",
+            {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(user)});
+
+        console.log("Ответ сервера:", response);
+        if (!response.ok) {
+
+            const errors = await response.json();
+
+            displayValidationErrorsAdd(errors);
+            return false;
+        }
+        return true;
+    }
+
+    async function addNewUserForm() {
+        const newUserForm = document.getElementById("new-user-form");
+
+        newUserForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const name = newUserForm.querySelector("#new-user-name").value.trim();
+            const surname = newUserForm.querySelector("#new-user-surname").value.trim();
+            const age = newUserForm.querySelector("#new-user-age").value.trim();
+            const password = newUserForm.querySelector("#new-user-password").value.trim();
+            const rolesSelected = document.getElementById("new-user-roles");
+            let roles = [];
+            for (let option of rolesSelected.selectedOptions) {
+                roles.push({id: option.value, roleName: option.textContent});
+            }
+
+            const newUserData = {
+                name: name,
+                surname: surname,
+                age: age,
+                password: password,
+                roles: roles
+            };
+
+            const validationErrors = validateUserDataAdd(newUserData);
+            if (Object.keys(validationErrors).length > 0) {
+                displayValidationErrorsAdd(validationErrors);
+                return;
+            }
+
+            const userCreated = await createNewUser(newUserData);
+            console.log("Результат создания пользователя:", userCreated);
+            if (userCreated) {
+                window.location.reload();
+            } else {
+                alert("Произошла ошибка при создании пользователя.");
+            }
+        });
+    }
+
+    addNewUserForm();
+
+    // Функция для отображения ошибок валидации
+    function displayValidationErrors(errors) {
+
+        const errorElements = document.querySelectorAll('.validation-error');
+        errorElements.forEach(el => el.textContent = '');
+
+
+        Object.keys(errors).forEach(field => {
+            const errorElement = document.getElementById(`error-${field}`);
+            if (errorElement) {
+                errorElement.textContent = errors[field];
+            }
+        });
+    }
 
     $('#save-user-button').off('click').on('click', function() {
         let modal = $('#userEditDialog');
         let selectedRoles = modal.find('#user-roles').val(); // Получение выбранных ролей
         let rolesArray = selectedRoles.map(roleName => ({ roleName }));
         let ageValue = modal.find('#user-age').val();
-        let age = ageValue ? parseInt(ageValue) : null; // Если ageValue не пустое, преобразуем в число, иначе null
-
+        let age = ageValue ? parseInt(ageValue) : null;
         let user = {
             name: modal.find('#user-name').val(),
             password: modal.find('#user-password').val(),
             surname: modal.find('#user-surname').val(),
-            age: age, // Используем переменную age, определенную выше
-            roles: rolesArray // Установка ролей как массива объектов
+            age: age,
+            roles: rolesArray
         };
 
         if (!validateUserData(user)) {
-            return; // Прерываем выполнение, если данные не прошли валидацию
+            return;
         }
 
-        // Получение userId из модального окна или другого источника
         let userId = modal.find('#user-id').val() ;
 
         if (userId) {
-            user.id = userId; // Установка ID пользователя, если он определен
+            user.id = userId;
             $.ajax({
-                url: '/api/v1/user/' + userId, // Добавление слэша перед userId
+                url: '/api/v1/user/' + userId,
                 type: 'PUT',
                 data: JSON.stringify(user),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: () => {
-                    location.reload(); // Перезагрузка страницы после успешного сохранения
+                    location.reload();
                 },
                 error: (err) => {
                     alert(err.responseText || 'Произошла ошибка при сохранении пользователя.');
                 }
             });
         } else {
-            console.error('UserID не определен.'); // Логирование ошибки, если userId не определен
+            console.error('UserID не определен.');
         }
-
-        modal.modal('hide'); // Закрытие модального окна
+        modal.modal('hide');
     });
 
-
     $('#userDeleteDialog').on('shown.bs.modal', function (event) {
-        let button = $(event.relatedTarget); // Кнопка, которая вызвала модальное окно
-        let userId = button.data('userid'); // Извлечение информации из атрибутов data-*
+        let button = $(event.relatedTarget);
+        let userId = button.data('userid');
 
         $.get({
             url: '/api/v1/user/' + userId,
@@ -436,7 +619,7 @@
                     .then(response => response.json())
                     .then(roles => {
                         if (Array.isArray(roles)) {
-                            // Создаем строку со всеми ролями для отображения
+
                             const rolesList = roles.join(', ');
                             modal.find('#user-roles-list').val(rolesList);
                         } else {
@@ -453,14 +636,13 @@
         });
     });
 
-    // Обработчик события 'click' для кнопки 'confirm-delete'
     $('#confirm-delete').on('click', function() {
-        let userId = $('#delete-user-id').val(); // Получение ID пользователя из модального окна
+        let userId = $('#delete-user-id').val();
         $.ajax({
             url: '/api/v1/user/' + userId,
             type: 'DELETE',
             success: () => {
-                location.reload(); // Обновление интерфейса или перезагрузка страницы
+                location.reload();
             },
             error: (err) => {
                 alert('Ошибка при удалении пользователя:', err);
