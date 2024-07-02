@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,16 @@ public class UserRestController {
 
     @Autowired
     private RoleService roleService;
+
+    @GetMapping("/admin")
+    public List<User> getAllUsers() {
+        return userService.getAll();
+    }
+
+    @GetMapping("/user")
+    public User getUserProfile(Principal principal) {
+        return userService.getUserByName(principal.getName());
+    }
 
     @GetMapping("/user/{userId}")
     public User findById(@PathVariable int userId) {

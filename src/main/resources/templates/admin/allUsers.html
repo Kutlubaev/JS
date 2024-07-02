@@ -144,39 +144,24 @@
         <a href="javascript:void(0);" class="tab light-blue" onclick="showAddUserForm()" data-target="form">Добавить нового пользователя</a>
     </div>
 <!--    Таблица пользователей-->
-    <div class="container mt-3" id="users-table" style="display: none;">
-    <h2>Все пользователи</h2>
-    <table class="table table-responsive table-striped">
-        <!-- Заголовки и строки таблицы -->
-        <thead class="thead-light">
-        <tr>
-            <th>ID</th>
-            <th>Имя</th>
-            <th>Фамилия</th>
-            <th>Возраст</th>
-            <th>Роли</th>
-            <th>Действия</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="user : ${usersList}">
-            <td th:text="${user.id}">id</td>
-            <td th:text="${user.name}">Имя</td>
-            <td th:text="${user.surname}">Фамилия</td>
-            <td th:text="${user.age}">Возраст</td>
-            <td>
-                <ul>
-                    <li th:each="role : ${user.roles}" th:text="${role.roleName}">Роль</li>
-                </ul>
-            </td>
-            <td>
-                <button id="edit-user" type="button" class="btn btn-success" data-toggle="modal" data-target="#userEditDialog" th:data-userId="${user.id}"><i class="fas fa-edit"></i> Редактировать</button>
-                <button id="delete-user" type="button" class="btn btn-danger" data-toggle="modal" data-target="#userDeleteDialog" th:data-userId="${user.id}"><i class="fas fa-trash-alt"></i> Удалить</button>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+    <div class="container mt-3" id="users-table">
+        <h2>Все пользователи</h2>
+        <table class="table table-responsive table-striped">
+            <thead class="thead-light">
+            <tr>
+                <th>ID</th>
+                <th>Имя</th>
+                <th>Фамилия</th>
+                <th>Возраст</th>
+                <th>Роли</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody id="usersTableId">
+            <!-- Заполнение таблицы будет производиться здесь с помощью JavaScript -->
+            </tbody>
+        </table>
+    </div>
 </div>
 <!--Форма добавления нового пользователя-->
 <div class="main-content">
@@ -344,6 +329,61 @@
 
 <script>
 
+    async function dataAboutAllUsers() {
+        const response = await fetch("/api/v1/admin");
+        return await response.json();
+    }
+
+    async function dataAboutCurrentUser() {
+        const response = await fetch("/api/v1/user")
+        const data = await response.json();
+        console.log(data); // Добавлено для отладки
+        return data;
+    }
+
+
+    async function fillTableOfAllUsers() {
+        const usersTable = document.getElementById("usersTableId");
+        const users = await dataAboutAllUsers();
+
+        if (!users) {
+            console.error('Не удалось получить данные о пользователях.'); // Добавлено для отладки
+            return;
+        }
+
+
+        let usersTableHTML = "";
+        for (let user of users) {
+            usersTableHTML +=
+                `<tr>
+                <td>${user.id}</td>
+                <td>${user.name}</td>
+                <td>${user.surname}</td>
+                <td>${user.age}</td>
+               <td>${user.roles.map(role => role.roleName.substring(5).concat(" ")).toString().replaceAll(",", "")}</td>
+                <td>
+                    <button class="btn btn-info"
+                            data-toggle="modal"
+                            data-target="#userEditDialog"
+                            data-user-id="${user.id}">
+                        Edit</button>
+                </td>
+                <td>
+                    <button class="btn btn-danger"
+                            data-toggle="modal"
+                            data-target="#userDeleteDialog"
+                            data-user-id="${user.id}">
+                        Delete</button>
+                </td>
+            </tr>`;
+        }
+        usersTable.innerHTML = usersTableHTML;
+    }
+
+    fillTableOfAllUsers();
+
+
+
     // Функция для отображения сообщения об ошибке
     function showValidationError(selector, message) {
         let modal = $('#userEditDialog');
@@ -358,41 +398,43 @@
         modal.find('.validation-error').hide();
     }
 
-    $('#userEditDialog').on('shown.bs.modal', function (event) {
-        let button = $(event.relatedTarget);
-        let userId = button.data('userid');
+    $(document).ready(function() {
+        $('#userEditDialog').on('shown.bs.modal', function (event) {
+            let button = $(event.relatedTarget);
+            let userId = button.data('user-id');
 
-        if (userId) {
-            $.get({
-                url: '/api/v1/user/' + userId,
-                success: (userData) => {
-                    let modal = $(this);
-                    modal.find('#user-id').val(userData.id);
-                    modal.find('#user-name').val(userData.name);
-                    modal.find('#user-password').val(userData.password);
-                    modal.find('#user-surname').val(userData.surname);
-                    modal.find('#user-age').val(userData.age);
+            if (userId) {
+                $.get({
+                    url: '/api/v1/user/' + userId,
+                    success: (userData) => {
+                        let modal = $(this);
+                        modal.find('#user-id').val(userData.id);
+                        modal.find('#user-name').val(userData.name);
+                        modal.find('#user-password').val(userData.password);
+                        modal.find('#user-surname').val(userData.surname);
+                        modal.find('#user-age').val(userData.age);
 
-                    $.get({
-                        url: '/api/v1/roles',
-                        success: (rolesData) => {
-                            let rolesSelect = modal.find('#user-roles');
-                            rolesSelect.empty(); // Очистка предыдущих опций
-                            rolesData.forEach(function(role) {
-                                let isSelected = userData.roles.some(userRole => userRole.roleName === role.roleName);
-                                rolesSelect.append(new Option(role.roleName, role.roleName, isSelected, isSelected));
-                            });
-                        },
-                        error: (err) => {
-                            console.error('Ошибка при получении ролей:', err);
-                        }
-                    });
-                },
-                error: (err) => {
-                    alert('Ошибка при получении данных пользователя:', err);
-                }
-            });
-        }
+                        $.get({
+                            url: '/api/v1/roles',
+                            success: (rolesData) => {
+                                let rolesSelect = modal.find('#user-roles');
+                                rolesSelect.empty(); // Очистка предыдущих опций
+                                rolesData.forEach(function (role) {
+                                    let isSelected = userData.roles.some(userRole => userRole.roleName === role.roleName);
+                                    rolesSelect.append(new Option(role.roleName, role.roleName, isSelected, isSelected));
+                                });
+                            },
+                            error: (err) => {
+                                console.error('Ошибка при получении ролей:', err);
+                            }
+                        });
+                    },
+                    error: (err) => {
+                        alert('Ошибка при получении данных пользователя:', err);
+                    }
+                });
+            }
+        });
     });
     // Функция валидации данных формы
     function validateUserData(user) {
@@ -538,7 +580,8 @@
             const userCreated = await createNewUser(newUserData);
             console.log("Результат создания пользователя:", userCreated);
             if (userCreated) {
-                window.location.reload();
+                await fillTableOfAllUsers(); // Обновляем таблицу пользователей
+                showUsersTable(); // Показываем таблицу пользователей
             } else {
                 alert("Произошла ошибка при создании пользователя.");
             }
@@ -591,7 +634,7 @@
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: () => {
-                    location.reload();
+                    fillTableOfAllUsers();
                 },
                 error: (err) => {
                     alert(err.responseText || 'Произошла ошибка при сохранении пользователя.');
@@ -603,36 +646,39 @@
         modal.modal('hide');
     });
 
-    $('#userDeleteDialog').on('shown.bs.modal', function (event) {
-        let button = $(event.relatedTarget);
-        let userId = button.data('userid');
 
-        $.get({
-            url: '/api/v1/user/' + userId,
-            success: (userData) => {
-                let modal = $('#userDeleteDialog');
-                modal.find('#delete-user-id').val(userData.id);
-                modal.find('#delete-user-name').val(userData.name);
-                modal.find('#delete-user-surname').val(userData.surname);
-                modal.find('#delete-user-age').val(userData.age);
-                fetch(`/api/v1/${userId}/roles`)
-                    .then(response => response.json())
-                    .then(roles => {
-                        if (Array.isArray(roles)) {
+    $(document).ready(function() {
+        $('#userDeleteDialog').on('shown.bs.modal', function (event) {
+            let button = $(event.relatedTarget);
+            let userId = button.data('user-id');
 
-                            const rolesList = roles.join(', ');
-                            modal.find('#user-roles-list').val(rolesList);
-                        } else {
-                            console.error('Ожидался массив ролей, но получен:', roles);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Ошибка при получении ролей:', error);
-                    });
-            },
-            error: (err) => {
-                alert('Ошибка при получении данных пользователя:', err);
-            }
+            $.get({
+                url: '/api/v1/user/' + userId,
+                success: (userData) => {
+                    let modal = $('#userDeleteDialog');
+                    modal.find('#delete-user-id').val(userData.id);
+                    modal.find('#delete-user-name').val(userData.name);
+                    modal.find('#delete-user-surname').val(userData.surname);
+                    modal.find('#delete-user-age').val(userData.age);
+                    fetch(`/api/v1/${userId}/roles`)
+                        .then(response => response.json())
+                        .then(roles => {
+                            if (Array.isArray(roles)) {
+
+                                const rolesList = roles.join(', ');
+                                modal.find('#user-roles-list').val(rolesList);
+                            } else {
+                                console.error('Ожидался массив ролей, но получен:', roles);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Ошибка при получении ролей:', error);
+                        });
+                },
+                error: (err) => {
+                    alert('Ошибка при получении данных пользователя:', err);
+                }
+            });
         });
     });
 
@@ -642,12 +688,14 @@
             url: '/api/v1/user/' + userId,
             type: 'DELETE',
             success: () => {
-                location.reload();
+                fillTableOfAllUsers();
+                $('#userDeleteDialog').modal('hide');
             },
             error: (err) => {
                 alert('Ошибка при удалении пользователя:', err);
             }
         });
+
     });
 </script>
 

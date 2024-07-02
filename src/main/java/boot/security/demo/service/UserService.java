@@ -35,6 +35,11 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public User getUserByName(String name) {
+        return userRepository.findByName(name).orElse(null);
+    }
+
+    @Transactional(readOnly = true)
     public boolean isUsernameUnique(String username) {
         return userRepository.findByName(username).isEmpty();
     }
