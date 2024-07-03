@@ -73,31 +73,66 @@
 
 <!-- Левая боковая колонка -->
 <div class="sidebar">
-  <button class="nav-button active" onclick="location.href='/admin/'">Панель администратора</button>
-  <button class="nav-button" onclick="location.href='/user'">Информация о пользователе</button>
+  <button class="nav-button" onclick="location.href='/admin/'">Панель администратора</button>
+  <button class="nav-button active" onclick="location.href='/user'">Информация о пользователе</button>
 </div>
 <!-- Полоса в верхней части страницы -->
-<div class="user-bar">
-  <div class="container">
-    <div class="row">
-      <div class="col">
-        <span th:text="${user.name}"></span> -
-        <span th:each="role : ${user.roles}" th:text="${role.roleName} + (iterStat.last ? '' : ', ')"></span>
-      </div>
-      <div class="col text-right">
-        <a href="/logout" class="btn btn-primary logout-button">Logout</a>
-      </div>
-    </div>
+<div id="userBar" class="user-bar">
+  <!-- Сюда будет загружена информация о пользователе -->
+</div>
+
+<div class="container mt-5">
+  <div id="userInfo" class="row">
+    <!-- Сюда будет загружена информация о пользователе -->
   </div>
 </div>
-<div class="container mt-5">
-  <div class="row">
-    <div class="col-md-8 offset-md-2">
-      <h2 class="text-center mb-4">Информация о пользователе</h2>
 
-      <div class="border p-4 bg-light">
-        <table class="table">
-          <thead class="thead-light">
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    fetchUserData();
+  });
+
+  function fetchUserData() {
+    fetch('/api/user-info')
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Сетевая ошибка при запросе данных пользователя');
+              }
+              return response.json();
+            })
+            .then(data => {
+              displayUserInfo(data);
+            })
+            .catch(error => {
+              console.error('Ошибка:', error);
+            });
+  }
+
+  function displayUserInfo(userData) {
+    const userBarDiv = document.getElementById('userBar');
+    const userInfoDiv = document.getElementById('userInfo');
+
+
+    // Проверка наличия данных и свойств объекта
+    if (userData && userData.username && Array.isArray(userData.roles)) {
+      // Формирование верхней панели пользователя
+      userBarDiv.innerHTML = `
+      <div class="container">
+        <div class="row">
+          <div class="col">
+            ${userData.username} - ${userData.roles.join(', ')}
+          </div>
+          <div class="col text-right">
+            <a href="/logout" class="btn btn-primary logout-button">Logout</a>
+          </div>
+        </div>
+      </div>
+    `;
+
+      // Формирование информации о пользователе
+      userInfoDiv.innerHTML = `
+      <table class="table table-striped">
+        <thead>
           <tr>
             <th>ID</th>
             <th>Имя</th>
@@ -105,25 +140,23 @@
             <th>Возраст</th>
             <th>Роли</th>
           </tr>
-          </thead>
-          <tbody>
+        </thead>
+        <tbody>
           <tr>
-            <td th:text="${user.id}"></td>
-            <td th:text="${user.name}"></td>
-            <td th:text="${user.surname}"></td>
-            <td th:text="${user.age}"></td>
-            <td>
-              <ul>
-                <li th:each="role : ${roles}" th:text="${role.roleName}"></li>
-              </ul>
-            </td>
+            <td>${userData.id}</td>
+            <td>${userData.username}</td>
+            <td>${userData.surname}</td>
+            <td>${userData.age}</td>
+            <td>${userData.roles.join(', ')}</td>
           </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+        </tbody>
+      </table>
+    `;
+    } else {
+      console.error('Некорректные данные:', userData);
+    }
+  }
+</script>
 
 <!-- Добавляем Bootstrap JS и Popper.js -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>

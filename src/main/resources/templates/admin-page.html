@@ -118,22 +118,12 @@
 <body>
 <!-- Левая боковая колонка -->
 <div class="sidebar">
-    <button class="nav-button active" onclick="location.href='/admin/'">Панель администратора</button>
+    <button class="nav-button active" onclick="location.href='/admin'">Панель администратора</button>
     <button class="nav-button" onclick="location.href='/user'">Информация о пользователе</button>
 </div>
 <!-- Полоса в верхней части страницы -->
-<div class="user-bar">
-    <div class="container">
-        <div class="row">
-            <div class="col">
-                <span th:text="${user.name}"></span> -
-                <span th:each="role : ${user.roles}" th:text="${role.roleName} + (iterStat.last ? '' : ', ')"></span>
-            </div>
-            <div class="col text-right">
-                <a href="/logout" class="btn btn-primary logout-button">Logout</a>
-            </div>
-        </div>
-    </div>
+<div id="userBar" class="user-bar">
+    <!-- Сюда будет загружена информация о пользователе -->
 </div>
 <div class="main-content">
 <div class="container mt-5">
@@ -297,6 +287,50 @@
     </div>
 </div>
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchUserData();
+    });
+
+    function fetchUserData() {
+        fetch('/api/user-info')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Сетевая ошибка при запросе данных пользователя');
+                }
+                return response.json();
+            })
+            .then(data => {
+                displayUserInfo(data);
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+            });
+    }
+
+    function displayUserInfo(userData) {
+        const userBarDiv = document.getElementById('userBar');
+
+        if (userData && userData.username && Array.isArray(userData.roles)) {
+            userBarDiv.innerHTML = `
+      <div class="container">
+        <div class="row">
+          <div class="col">
+            ${userData.username} - ${userData.roles.join(', ')}
+          </div>
+          <div class="col text-right">
+            <a href="/logout" class="btn btn-primary logout-button">Logout</a>
+          </div>
+        </div>
+      </div>
+    `;
+
+        } else {
+            console.error('Некорректные данные:', userData);
+        }
+    }
+
+</script>
+<script>
 
     function showUsersTable() {
         document.getElementById('users-table').style.display = 'block';
@@ -313,8 +347,9 @@
         document.querySelector('.tab[data-target="form"]').classList.add('active');
         document.querySelector('.tab[data-target="table"]').classList.remove('active');
     }
+    showUsersTable();
 
-    window.onload = showUsersTable;
+
 </script>
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"
